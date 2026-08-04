@@ -52,17 +52,18 @@ export function Backup({
     setMsg('已重置为百化分正反示例库')
   }
 
-  function onCodeChange(value: string) {
-    const next = normalizeSyncCode(value)
-    setSyncCode(next)
-    if (isValidSyncCode(next)) saveSyncCode(next)
-  }
-
   function createCode() {
     const code = generateSyncCode()
     setSyncCode(code)
     saveSyncCode(code)
-    setMsg(`已生成同步码 ${code}。也可改成自己的手机号，再点「上传到云」`)
+    setMsg(`已生成随机码 ${code}。更推荐改用手机号，方便记忆`)
+  }
+
+  function onCodeChange(value: string) {
+    const next = normalizeSyncCode(value)
+    setSyncCode(next)
+    // 有效码立即落盘；输入中的手机号满 11 位也会保存
+    if (isValidSyncCode(next)) saveSyncCode(next)
   }
 
   async function upload() {
@@ -126,35 +127,39 @@ export function Backup({
   return (
     <section className="panel">
       <h1 className="page-title">备份与同步</h1>
-      <p className="lede">本机可导出 JSON；上云后用同步码在手机/电脑之间恢复。</p>
+      <p className="lede">本机可导出 JSON；填手机号上传后，换设备用同一号码恢复。</p>
 
       <h2 className="section-title">云同步（Cloudflare KV）</h2>
       <p className="hint sync-hint">
-        可直接填手机号当同步码，也可点「生成同步码」。同步码相当于密码，知道就能读写数据，请自行保管。
+        <strong>优先用手机号</strong>
+        当同步码（好记、换设备方便）。填一次后本机会自动记住，不清浏览器缓存就不用重填。也可点「生成随机码」代替。
       </p>
       <label className="sync-label">
-        同步码 / 手机号
+        手机号（推荐）
         <input
           value={syncCode}
           onChange={(e) => onCodeChange(e.target.value)}
-          placeholder="例如 13800138000 或 MC-XXXXXXXXXXXX"
+          placeholder="请输入 11 位手机号，如 13800138000"
           spellCheck={false}
-          autoCapitalize="characters"
-          inputMode="text"
+          autoComplete="tel"
+          inputMode="tel"
         />
       </label>
+      {syncCode ? (
+        <p className="hint sync-remembered">本机已记住：{syncCode}</p>
+      ) : null}
       <div className="cta-row">
-        <button type="button" className="btn" onClick={createCode} disabled={busy}>
-          生成同步码
-        </button>
-        <button type="button" className="btn ghost" onClick={() => void copyCode()} disabled={!syncCode || busy}>
-          复制
-        </button>
         <button type="button" className="btn primary" onClick={() => void upload()} disabled={busy}>
           上传到云
         </button>
         <button type="button" className="btn" onClick={() => void downloadCloud()} disabled={busy}>
           从云恢复
+        </button>
+        <button type="button" className="btn ghost" onClick={() => void copyCode()} disabled={!syncCode || busy}>
+          复制
+        </button>
+        <button type="button" className="btn ghost" onClick={createCode} disabled={busy}>
+          生成随机码
         </button>
       </div>
 

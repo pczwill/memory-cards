@@ -713,6 +713,17 @@ button {
   margin-top: -0.25rem;
 }
 
+.sync-hint strong {
+  color: var(--teal-deep);
+  margin-right: 0.25rem;
+}
+
+.sync-remembered {
+  margin: 0.35rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.03em;
+}
+
 .footer {
   margin-top: 1.5rem;
   text-align: center;
