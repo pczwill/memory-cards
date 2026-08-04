@@ -11,7 +11,7 @@ export function readSyncCode(): string {
 }
 
 export function saveSyncCode(code: string): void {
-  localStorage.setItem(CODE_KEY, code.trim().toUpperCase())
+  localStorage.setItem(CODE_KEY, normalizeSyncCode(code))
 }
 
 /** 生成形如 MC-XXXXXXXXXXXX 的同步码 */
@@ -21,12 +21,16 @@ export function generateSyncCode(): string {
   return `MC-${hex.slice(0, 4)}${hex.slice(4, 8)}${hex.slice(8, 12)}`
 }
 
+/** 支持手机号或随机同步码；去掉空格、横线中的空白 */
 export function normalizeSyncCode(raw: string): string {
-  return raw.trim().toUpperCase().replace(/\s+/g, '')
+  return raw.trim().toUpperCase().replace(/[\s_]/g, '')
 }
 
 export function isValidSyncCode(raw: string): boolean {
-  return /^[A-Z0-9-]{10,64}$/.test(normalizeSyncCode(raw))
+  const code = normalizeSyncCode(raw)
+  // 中国大陆手机号，或 8–64 位字母数字横线（兼容已生成的 MC- 码）
+  if (/^1\d{10}$/.test(code)) return true
+  return /^[A-Z0-9-]{8,64}$/.test(code)
 }
 
 type PullOk = { ok: true; updatedAt: string; data: AppData }

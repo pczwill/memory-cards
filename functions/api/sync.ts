@@ -19,7 +19,8 @@ type SyncPayload = {
   data: unknown
 }
 
-const CODE_RE = /^[A-Za-z0-9-]{10,64}$/
+const CODE_RE = /^[A-Za-z0-9-]{8,64}$/
+const PHONE_RE = /^1\d{10}$/
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -33,9 +34,9 @@ function json(data: unknown, status = 200): Response {
 
 function normalizeCode(raw: string | null | undefined): string | null {
   if (!raw) return null
-  const code = raw.trim().toUpperCase().replace(/\s+/g, '')
-  if (!CODE_RE.test(code)) return null
-  return code
+  const code = raw.trim().toUpperCase().replace(/[\s_]/g, '')
+  if (PHONE_RE.test(code) || CODE_RE.test(code)) return code
+  return null
 }
 
 async function storageKey(code: string): Promise<string> {

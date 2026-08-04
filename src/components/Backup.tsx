@@ -62,7 +62,7 @@ export function Backup({
     const code = generateSyncCode()
     setSyncCode(code)
     saveSyncCode(code)
-    setMsg(`已生成同步码 ${code}，请先「上传到云」，并抄到其他设备`)
+    setMsg(`已生成同步码 ${code}。也可改成自己的手机号，再点「上传到云」`)
   }
 
   async function upload() {
@@ -130,16 +130,17 @@ export function Backup({
 
       <h2 className="section-title">云同步（Cloudflare KV）</h2>
       <p className="hint sync-hint">
-        同步码相当于密码：知道码就能读写这份数据。请自行保管，不要发到公开场合。
+        可直接填手机号当同步码，也可点「生成同步码」。同步码相当于密码，知道就能读写数据，请自行保管。
       </p>
       <label className="sync-label">
-        同步码
+        同步码 / 手机号
         <input
           value={syncCode}
           onChange={(e) => onCodeChange(e.target.value)}
-          placeholder="MC-XXXXXXXXXXXX"
+          placeholder="例如 13800138000 或 MC-XXXXXXXXXXXX"
           spellCheck={false}
           autoCapitalize="characters"
+          inputMode="text"
         />
       </label>
       <div className="cta-row">
