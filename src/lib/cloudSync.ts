@@ -39,6 +39,13 @@ type Err = { ok: false; error: string }
 
 export async function pullFromCloud(code: string): Promise<PullOk | Err> {
   const res = await fetch(`/api/sync?code=${encodeURIComponent(normalizeSyncCode(code))}`)
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    return {
+      ok: false,
+      error: '云同步接口未部署。请先 git push，并在 Cloudflare 绑定 MEMORY_KV 后重新部署',
+    }
+  }
   const body = (await res.json().catch(() => ({}))) as {
     error?: string
     updatedAt?: string
@@ -55,6 +62,13 @@ export async function pushToCloud(code: string, data: AppData): Promise<PushOk |
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ code: normalizeSyncCode(code), data }),
   })
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    return {
+      ok: false,
+      error: '云同步接口未部署。请先 git push，并在 Cloudflare 绑定 MEMORY_KV 后重新部署',
+    }
+  }
   const body = (await res.json().catch(() => ({}))) as { error?: string; updatedAt?: string }
   if (!res.ok) return { ok: false, error: body.error || `上传失败（${res.status}）` }
   return { ok: true, updatedAt: body.updatedAt || '' }
