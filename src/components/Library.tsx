@@ -3,9 +3,16 @@ import { effectiveDue } from '../lib/sm2'
 import { accuracy } from '../lib/stats'
 import type { Card } from '../types'
 
+const UNTAGGED = '__untagged__'
+
 function formatDue(card: Card): string {
   const d = effectiveDue(card)
-  return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('zh-CN', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export function Library({
@@ -25,7 +32,7 @@ export function Library({
   onRemove: (id: string) => void
   onManualDue: (id: string, dateYmd: string) => void
 }) {
-  const [tagFilter, setTagFilter] = useState('')
+  const [activeTag, setActiveTag] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState<Card | null>(null)
   const [front, setFront] = useState('')
@@ -35,32 +42,52 @@ export function Library({
   const [manualDueId, setManualDueId] = useState<string | null>(null)
   const [manualDate, setManualDate] = useState('')
   const [bulk, setBulk] = useState('')
+  const [showEditor, setShowEditor] = useState(false)
 
-  const allTags = useMemo(() => {
-    const set = new Set<string>()
-    cards.forEach((c) => c.tags.forEach((t) => set.add(t)))
-    return [...set].sort()
+  const tagStats = useMemo(() => {
+    const map = new Map<string, number>()
+    let untagged = 0
+    for (const c of cards) {
+      if (!c.tags.length) {
+        untagged += 1
+        continue
+      }
+      for (const t of c.tags) {
+        map.set(t, (map.get(t) ?? 0) + 1)
+      }
+    }
+    const list = [...map.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+    if (untagged > 0) list.push({ name: UNTAGGED, count: untagged })
+    return list
   }, [cards])
 
   const filtered = useMemo(() => {
+    if (!activeTag) return []
     return cards.filter((c) => {
-      if (tagFilter && !c.tags.includes(tagFilter)) return false
+      if (activeTag === UNTAGGED) {
+        if (c.tags.length) return false
+      } else if (!c.tags.includes(activeTag)) {
+        return false
+      }
       if (!q.trim()) return true
       const needle = q.trim().toLowerCase()
       return (
         c.front.toLowerCase().includes(needle) ||
         c.back.toLowerCase().includes(needle) ||
-        c.tags.some((t) => t.includes(needle))
+        c.tags.some((t) => t.toLowerCase().includes(needle))
       )
     })
-  }, [cards, tagFilter, q])
+  }, [cards, activeTag, q])
 
   function startCreate() {
     setEditing(null)
     setFront('')
     setBack('')
-    setTags('')
-    setKind('flash')
+    setTags(activeTag && activeTag !== UNTAGGED ? activeTag : '百化分')
+    setKind('drill')
+    setShowEditor(true)
   }
 
   function startEdit(card: Card) {
@@ -69,6 +96,7 @@ export function Library({
     setBack(card.back)
     setTags(card.tags.join(', '))
     setKind(card.kind)
+    setShowEditor(true)
   }
 
   function submit(e: React.FormEvent) {
@@ -84,7 +112,12 @@ export function Library({
         .filter(Boolean),
       kind,
     })
-    startCreate()
+    setEditing(null)
+    setFront('')
+    setBack('')
+    setTags(activeTag && activeTag !== UNTAGGED ? activeTag : '百化分')
+    setKind('drill')
+    setShowEditor(false)
   }
 
   function importBulk() {
@@ -93,13 +126,14 @@ export function Library({
       .map((l) => l.trim())
       .filter(Boolean)
     let n = 0
+    const defaultTag = activeTag && activeTag !== UNTAGGED ? activeTag : '百化分'
     for (const line of lines) {
       const m = line.match(/^(.+?)\s*=\s*(.+)$/)
       if (!m) continue
       onSave({
         front: m[1].trim(),
         back: m[2].trim(),
-        tags: ['导入'],
+        tags: [defaultTag],
         kind: 'drill',
       })
       n += 1
@@ -108,48 +142,133 @@ export function Library({
     alert(`已导入 ${n} 张卡片`)
   }
 
+  const activeLabel = activeTag === UNTAGGED ? '未分类' : activeTag
+
+  if (!activeTag) {
+    return (
+      <section className="panel">
+        <h1 className="page-title">卡片库</h1>
+        <p className="lede">先点标签进入，再查看该标签下的卡片。</p>
+
+        <div className="cta-row">
+          <button type="button" className="btn primary" onClick={startCreate}>
+            新建卡片
+          </button>
+        </div>
+
+        {showEditor ? (
+          <form className="editor" onSubmit={submit}>
+            <h2 className="section-title">{editing ? '编辑卡片' : '新建卡片'}</h2>
+            <label>
+              正面
+              <textarea value={front} onChange={(e) => setFront(e.target.value)} rows={2} required />
+            </label>
+            <label>
+              背面
+              <textarea value={back} onChange={(e) => setBack(e.target.value)} rows={2} required />
+            </label>
+            <div className="row-2">
+              <label>
+                标签（逗号分隔）
+                <input
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="百化分, 反向"
+                />
+              </label>
+              <label>
+                类型
+                <select value={kind} onChange={(e) => setKind(e.target.value as Card['kind'])}>
+                  <option value="flash">普通卡片</option>
+                  <option value="drill">百化分</option>
+                </select>
+              </label>
+            </div>
+            <div className="cta-row">
+              <button type="submit" className="btn primary">
+                {editing ? '保存修改' : '添加'}
+              </button>
+              <button type="button" className="btn ghost" onClick={() => setShowEditor(false)}>
+                取消
+              </button>
+            </div>
+          </form>
+        ) : null}
+
+        <div className="tag-grid">
+          {tagStats.map((item) => (
+            <button
+              key={item.name}
+              type="button"
+              className="tag-tile"
+              onClick={() => {
+                setActiveTag(item.name)
+                setQ('')
+                setShowEditor(false)
+              }}
+            >
+              <strong>{item.name === UNTAGGED ? '未分类' : item.name}</strong>
+              <span>{item.count} 张</span>
+            </button>
+          ))}
+        </div>
+        {!tagStats.length ? <p className="empty">还没有标签，先新建一张卡片吧</p> : null}
+      </section>
+    )
+  }
+
   return (
     <section className="panel">
-      <h1 className="page-title">卡片库</h1>
-      <p className="lede">单库 + 标签。支持批量：每行 `正面=背面`。</p>
-
-      <form className="editor" onSubmit={submit}>
-        <h2 className="section-title">{editing ? '编辑卡片' : '新建卡片'}</h2>
-        <label>
-          正面
-          <textarea value={front} onChange={(e) => setFront(e.target.value)} rows={2} required />
-        </label>
-        <label>
-          背面
-          <textarea value={back} onChange={(e) => setBack(e.target.value)} rows={2} required />
-        </label>
-        <div className="row-2">
-          <label>
-            标签（逗号分隔）
-            <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="百分比, 口算" />
-          </label>
-          <label>
-            类型
-            <select value={kind} onChange={(e) => setKind(e.target.value as Card['kind'])}>
-              <option value="flash">普通卡片</option>
-              <option value="drill">口算</option>
-            </select>
-          </label>
-        </div>
-        <div className="cta-row">
-          <button type="submit" className="btn primary">
-            {editing ? '保存修改' : '添加'}
+      <div className="session-top">
+        <div>
+          <button type="button" className="btn ghost back-tag" onClick={() => setActiveTag(null)}>
+            ← 全部标签
           </button>
-          {editing ? (
-            <button type="button" className="btn ghost" onClick={startCreate}>
-              取消编辑
-            </button>
-          ) : null}
+          <h1 className="page-title">{activeLabel}</h1>
+          <p className="lede">{filtered.length} 张卡片</p>
         </div>
-      </form>
+        <button type="button" className="btn primary" onClick={startCreate}>
+          新建
+        </button>
+      </div>
+
+      {showEditor ? (
+        <form className="editor" onSubmit={submit}>
+          <h2 className="section-title">{editing ? '编辑卡片' : '新建卡片'}</h2>
+          <label>
+            正面
+            <textarea value={front} onChange={(e) => setFront(e.target.value)} rows={2} required />
+          </label>
+          <label>
+            背面
+            <textarea value={back} onChange={(e) => setBack(e.target.value)} rows={2} required />
+          </label>
+          <div className="row-2">
+            <label>
+              标签（逗号分隔）
+              <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="百化分, 反向" />
+            </label>
+            <label>
+              类型
+              <select value={kind} onChange={(e) => setKind(e.target.value as Card['kind'])}>
+                <option value="flash">普通卡片</option>
+                <option value="drill">百化分</option>
+              </select>
+            </label>
+          </div>
+          <div className="cta-row">
+            <button type="submit" className="btn primary">
+              {editing ? '保存修改' : '添加'}
+            </button>
+            <button type="button" className="btn ghost" onClick={() => setShowEditor(false)}>
+              取消
+            </button>
+          </div>
+        </form>
+      ) : null}
 
       <details className="bulk">
-        <summary>批量导入</summary>
+        <summary>批量导入到「{activeLabel}」</summary>
         <textarea
           value={bulk}
           onChange={(e) => setBulk(e.target.value)}
@@ -161,21 +280,13 @@ export function Library({
         </button>
       </details>
 
-      <div className="toolbar">
+      <div className="toolbar single">
         <input
           className="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="搜索正面 / 背面 / 标签"
+          placeholder="在此标签内搜索"
         />
-        <select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
-          <option value="">全部标签</option>
-          {allTags.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
       </div>
 
       <ul className="card-list">
@@ -190,7 +301,7 @@ export function Library({
                     {t}
                   </span>
                 ))}
-                <span className="tag quiet">{card.kind === 'drill' ? '口算' : '普通'}</span>
+                <span className="tag quiet">{card.kind === 'drill' ? '百化分' : '普通'}</span>
               </div>
               <p className="meta">
                 下次 {formatDue(card)}
@@ -238,7 +349,7 @@ export function Library({
           </li>
         ))}
       </ul>
-      {!filtered.length ? <p className="empty">没有匹配的卡片</p> : null}
+      {!filtered.length ? <p className="empty">这个标签下还没有卡片</p> : null}
     </section>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { answersMatch } from '../lib/stats'
+import { isPercentDrillCard } from '../lib/seed'
 import type { Card } from '../types'
 
 function shuffle<T>(arr: T[]): T[] {
@@ -12,7 +13,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function buildPool(cards: Card[]): Card[] {
-  const drills = cards.filter((c) => c.kind === 'drill' || c.tags.includes('口算'))
+  const drills = cards.filter(isPercentDrillCard)
   return shuffle(drills.length ? drills : cards)
 }
 
@@ -63,7 +64,7 @@ export function Drill({
     return (
       <section className="panel center">
         <h1 className="page-title">没有可练的卡片</h1>
-        <p className="lede">先在卡片库添加，或把类型设为「口算」。</p>
+        <p className="lede">先在卡片库添加，或把类型设为「百化分」。</p>
       </section>
     )
   }
@@ -100,7 +101,7 @@ export function Drill({
   return (
     <section className="panel">
       <div className="session-top">
-        <h1 className="page-title">口算冲刺</h1>
+        <h1 className="page-title">百化分冲刺</h1>
         <div className="session-actions">
           {!feedback ? (
             <button type="button" className="btn ghost" onClick={togglePause}>

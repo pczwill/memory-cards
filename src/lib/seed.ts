@@ -47,12 +47,40 @@ function pairKey(front: string, back: string): string {
   return `${front.trim()}→${back.trim()}`
 }
 
+const TAG_RENAMES: Record<string, string> = {
+  口算: '百化分',
+  百分比: '百化分',
+}
+
+export function normalizeCardTags(tags: string[]): string[] {
+  const next = new Set<string>()
+  for (const raw of tags) {
+    const t = TAG_RENAMES[raw] ?? raw
+    if (t) next.add(t)
+  }
+  return [...next]
+}
+
+/** 迁移旧标签名，返回是否有改动 */
+export function migrateCardTags(cards: Card[]): { cards: Card[]; changed: boolean } {
+  let changed = false
+  const next = cards.map((card) => {
+    const tags = normalizeCardTags(card.tags)
+    if (tags.length === card.tags.length && tags.every((t, i) => t === card.tags[i])) {
+      return card
+    }
+    changed = true
+    return { ...card, tags, updatedAt: new Date().toISOString() }
+  })
+  return { cards: next, changed }
+}
+
 export function seedPercentCards(): Card[] {
   const forward = PCT_PAIRS.map(([front, back]) =>
     createBlankCard({
       front,
       back,
-      tags: ['百分比', '口算'],
+      tags: ['百化分'],
       kind: 'drill',
     }),
   )
@@ -60,7 +88,7 @@ export function seedPercentCards(): Card[] {
     createBlankCard({
       front: back,
       back: front,
-      tags: ['百分比', '口算', '反向'],
+      tags: ['百化分', '反向'],
       kind: 'drill',
     }),
   )
@@ -82,7 +110,7 @@ export function mergeMissingReversePercentCards(cards: Card[]): {
         createBlankCard({
           front: pct,
           back: frac,
-          tags: ['百分比', '口算', '反向'],
+          tags: ['百化分', '反向'],
           kind: 'drill',
         }),
       )
@@ -92,4 +120,13 @@ export function mergeMissingReversePercentCards(cards: Card[]): {
 
   if (!toAdd.length) return { cards, added: 0 }
   return { cards: [...cards, ...toAdd], added: toAdd.length }
+}
+
+export function isPercentDrillCard(card: Card): boolean {
+  return (
+    card.kind === 'drill' ||
+    card.tags.includes('百化分') ||
+    card.tags.includes('口算') ||
+    card.tags.includes('百分比')
+  )
 }

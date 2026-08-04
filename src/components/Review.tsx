@@ -40,7 +40,7 @@ export function Review({
     return (
       <section className="panel center">
         <h1 className="page-title">暂无待复习</h1>
-        <p className="lede">所有卡片都还没到期，去口算或加新卡吧。</p>
+        <p className="lede">所有卡片都还没到期，去百化分练习或加新卡吧。</p>
       </section>
     )
   }

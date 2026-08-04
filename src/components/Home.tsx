@@ -13,7 +13,7 @@ export function Home({
   return (
     <section className="panel home">
       <h1 className="page-title">今日状态</h1>
-      <p className="lede">待复习优先，口算练速度，曲线帮你看遗忘。</p>
+      <p className="lede">待复习优先，百化分练速度，曲线帮你看遗忘。</p>
 
       <div className="stat-grid">
         <article className="stat">
@@ -41,14 +41,14 @@ export function Home({
           开始复习{s.due ? `（${s.due}）` : ''}
         </button>
         <button type="button" className="btn" onClick={() => onGo('drill')}>
-          口算冲刺
+          百化分冲刺
         </button>
         <button type="button" className="btn ghost" onClick={() => onGo('library')}>
           添加卡片
         </button>
       </div>
 
-      <p className="hint">已预置「百分比」正反口算卡（如 `1/7→14.3%` 与 `14.3%→1/7`），可在卡片库用标签「反向」筛选。</p>
+      <p className="hint">已预置「百化分」正反卡片（如 `1/7→14.3%` 与 `14.3%→1/7`）。卡片库先点标签再看内容。</p>
     </section>
   )
 }

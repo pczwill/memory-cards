@@ -1,5 +1,9 @@
 import type { AppData } from '../types'
-import { mergeMissingReversePercentCards, seedPercentCards } from './seed'
+import {
+  mergeMissingReversePercentCards,
+  migrateCardTags,
+  seedPercentCards,
+} from './seed'
 
 const KEY = 'memory-cards:v1'
 
@@ -22,10 +26,10 @@ export function loadData(): AppData {
     const parsed = JSON.parse(raw) as AppData
     if (!parsed?.cards || !parsed?.logs) return emptyData()
 
-    // 已有用户：自动补全反向百分比卡
-    const { cards, added } = mergeMissingReversePercentCards(parsed.cards)
+    const migrated = migrateCardTags(parsed.cards)
+    const { cards, added } = mergeMissingReversePercentCards(migrated.cards)
     const next = { ...parsed, version: 1 as const, cards }
-    if (added > 0) saveData(next)
+    if (added > 0 || migrated.changed) saveData(next)
     return next
   } catch {
     return emptyData()
@@ -45,5 +49,6 @@ export function parseImport(text: string): AppData {
   if (!Array.isArray(parsed.cards) || !Array.isArray(parsed.logs)) {
     throw new Error('无效的备份文件')
   }
-  return { version: 1, cards: parsed.cards, logs: parsed.logs }
+  const { cards } = migrateCardTags(parsed.cards)
+  return { version: 1, cards, logs: parsed.logs }
 }

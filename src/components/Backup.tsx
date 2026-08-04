@@ -36,9 +36,9 @@ export function Backup({
   }
 
   function resetSeed() {
-    if (!confirm('将清空当前数据，并重新载入百分比正反示例卡，确定？')) return
+    if (!confirm('将清空当前数据，并重新载入百化分正反示例卡，确定？')) return
     onReplace({ version: 1, cards: seedPercentCards(), logs: [] })
-    setMsg('已重置为百分比正反示例库')
+    setMsg('已重置为百化分正反示例库')
   }
 
   return (

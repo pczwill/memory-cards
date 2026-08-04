@@ -647,6 +647,50 @@ button {
   gap: 0.65rem 0.85rem;
 }
 
+.toolbar.single {
+  grid-template-columns: 1fr;
+}
+
+.tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.tag-tile {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+  padding: 1rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--stat-bg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.tag-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--btn-hover-shadow);
+  border-color: color-mix(in srgb, var(--teal) 40%, var(--line));
+}
+
+.tag-tile strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.tag-tile span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.back-tag {
+  margin-bottom: 0.35rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
 .footer {
   margin-top: 1.5rem;
   text-align: center;

@@ -4,7 +4,7 @@ import type { ViewId } from '../types'
 const ITEMS: { id: ViewId; label: string }[] = [
   { id: 'home', label: '今日' },
   { id: 'review', label: '复习' },
-  { id: 'drill', label: '口算' },
+  { id: 'drill', label: '百化分' },
   { id: 'library', label: '卡片库' },
   { id: 'stats', label: '曲线' },
   { id: 'backup', label: '备份' },
