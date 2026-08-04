@@ -110,7 +110,11 @@ button {
   max-width: 980px;
   margin: 0 auto;
   padding: 1.25rem 1.25rem 3rem;
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+  padding-bottom: max(3rem, env(safe-area-inset-bottom));
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .bg-glow {
@@ -379,6 +383,7 @@ button {
   border-radius: 10px;
   padding: 0.65rem 0.75rem;
   background: var(--input-bg);
+  font-size: 16px; /* iOS 避免聚焦自动放大 */
 }
 
 .row-2 {
@@ -664,11 +669,128 @@ button {
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 720px) {
   .app {
-    padding: 1rem 0.85rem 2.5rem;
+    padding: 0.85rem 0.75rem 5.5rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
   }
 
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .topbar-end {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .brand {
+    justify-content: space-between;
+  }
+
+  .theme-toggle {
+    align-self: flex-start;
+  }
+
+  .nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(12px);
+  }
+
+  html[data-theme='ink'] .nav {
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  .nav-btn {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.45rem 0.15rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    min-height: 2.75rem;
+  }
+
+  .nav-btn .badge {
+    position: absolute;
+    top: 0.15rem;
+    right: 0.15rem;
+    margin: 0;
+  }
+
+  .btn,
+  .btn.grade {
+    min-height: 2.75rem;
+  }
+
+  .btn.grade {
+    text-align: center;
+    justify-items: center;
+  }
+
+  .panel {
+    padding: 1.1rem 0.95rem 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.45rem;
+  }
+
+  .prompt {
+    font-size: clamp(1.55rem, 8vw, 2.2rem);
+  }
+
+  .prompt.big {
+    font-size: clamp(1.9rem, 10vw, 2.8rem);
+  }
+
+  .session-top {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .session-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .card-actions {
+    width: 100%;
+  }
+
+  .card-actions .btn {
+    flex: 1;
+  }
+
+  .footer {
+    display: none;
+  }
+
+  .cta-row .btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (max-width: 520px) {
   .stat-grid,
   .stat-grid.compact,
   .toolbar,
@@ -677,8 +799,7 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .nav-btn {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.9rem;
+  .grade-row {
+    grid-template-columns: 1fr 1fr;
   }
 }
