@@ -1,26 +1,42 @@
 # 记忆卡片
 
-本地浏览器运行的卡片记忆工具：通用正反面卡片 + 口算冲刺，SM-2 风格遗忘曲线，可手动改期，记录正确率与反应速度。
+本地浏览器卡片记忆工具，支持 Cloudflare Pages 部署与 KV 云同步。
 
-## 使用
+## 本地开发
 
 ```bash
 cd ~/Documents/develop/memory-cards
-# 需要 Node 20+
-nvm use 20   # 若已用 nvm
+nvm use 20
 npm install
 npm run dev
 ```
 
-浏览器打开终端里提示的地址（一般是 http://localhost:5173）。
+云同步接口只在部署到 Cloudflare Pages 后可用（依赖 Functions + KV）。
+
+## Cloudflare Pages
+
+1. 连接 GitHub 仓库，构建设置：
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - 环境变量: `NODE_VERSION=20`
+2. 部署成功后，绑定 KV：
+   - Cloudflare Dashboard → Workers & Pages → 你的项目 → **Settings** → **Bindings**
+   - 添加 **KV Namespace** 绑定
+   - Variable name 必须是：`MEMORY_KV`
+   - 新建或选择一个 Namespace（如 `memory-cards-sync`）
+3. 重新部署一次（或触发一次新构建），让绑定生效
+
+## 云同步用法
+
+打开站点 → **备份** → **云同步**：
+
+1. 点「生成同步码」
+2. 点「上传到云」
+3. 在另一台设备打开同一站点，输入同一同步码 →「从云恢复」
+
+同步码相当于密码，请自行保管。
 
 ## 功能
 
-- **今日**：待复习数量、正确率、平均反应时间
-- **复习**：到期卡片，忘记 / 困难 / 记住 / 轻松 四级评分
-- **口算**：计时输入答案，自动记速度并调整下次复习
-- **卡片库**：增删改、标签筛选、批量导入（每行 `正面=背面`）、手动改期
-- **曲线**：近 14 天复习量与速度趋势、薄弱卡片
-- **备份**：导出 / 导入 JSON；数据存在本机 `localStorage`
-
-首次打开会预置「百分比」口算卡片（如 `1/7 → 14.3%`）。
+- 今日 / 复习（SM-2）/ 百化分冲刺 / 卡片库（标签优先）/ 曲线 / 备份与云同步
+- 主题：晨雾 / 墨夜

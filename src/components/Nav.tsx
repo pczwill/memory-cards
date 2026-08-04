@@ -7,7 +7,7 @@ const ITEMS: { id: ViewId; label: string }[] = [
   { id: 'drill', label: '百化分' },
   { id: 'library', label: '卡片库' },
   { id: 'stats', label: '曲线' },
-  { id: 'backup', label: '备份' },
+  { id: 'backup', label: '同步' },
 ]
 
 export function Nav({

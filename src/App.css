@@ -691,6 +691,28 @@ button {
   padding-right: 0.35rem;
 }
 
+.sync-label {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.sync-label input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  background: var(--input-bg);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sync-hint {
+  margin-top: -0.25rem;
+}
+
 .footer {
   margin-top: 1.5rem;
   text-align: center;

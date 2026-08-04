@@ -1,0 +1,5 @@
+{
+  "description": "Route API to Functions; rest to static assets",
+  "include": ["/api/*"],
+  "exclude": []
+}
