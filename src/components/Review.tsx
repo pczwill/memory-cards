@@ -16,7 +16,7 @@ export function Review({
   cards: Card[]
   onGrade: (id: string, grade: ReviewGrade) => void
 }) {
-  const [queue] = useState(() => shuffle(dueCards(cards)))
+  const [queue, setQueue] = useState(() => shuffle(dueCards(cards)))
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)
@@ -27,6 +27,7 @@ export function Review({
   }, [cards, queue])
 
   const current = live[index]
+  const remaining = queue.length - index
 
   function grade(g: ReviewGrade) {
     if (!current) return
@@ -34,6 +35,17 @@ export function Review({
     setRevealed(false)
     if (index + 1 >= live.length) setFinished(true)
     else setIndex((i) => i + 1)
+  }
+
+  /** 打乱尚未复习的卡片（已完成的不动） */
+  function reshuffleRemaining() {
+    if (remaining <= 1) return
+    setQueue((prev) => {
+      const done = prev.slice(0, index)
+      const rest = shuffle(prev.slice(index))
+      return [...done, ...rest]
+    })
+    setRevealed(false)
   }
 
   if (!queue.length) {
@@ -58,9 +70,20 @@ export function Review({
     <section className="panel">
       <div className="session-top">
         <h1 className="page-title">复习</h1>
-        <span className="progress">
-          {index + 1} / {queue.length}
-        </span>
+        <div className="session-actions">
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={reshuffleRemaining}
+            disabled={remaining <= 1}
+            title={remaining <= 1 ? '剩余不足 2 张，无需打乱' : '打乱剩余卡片顺序'}
+          >
+            打乱剩余
+          </button>
+          <span className="progress">
+            {index + 1} / {queue.length}
+          </span>
+        </div>
       </div>
 
       <div className="flip-stage">
