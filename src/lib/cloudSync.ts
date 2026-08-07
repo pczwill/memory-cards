@@ -37,23 +37,32 @@ type PullOk = { ok: true; updatedAt: string; data: AppData }
 type PushOk = { ok: true; updatedAt: string }
 type Err = { ok: false; error: string }
 
+async function readJsonBody(res: Response): Promise<Record<string, unknown> | null> {
+  const text = await res.text()
+  const trimmed = text.trim()
+  if (!trimmed || trimmed.startsWith('<!doctype') || trimmed.startsWith('<html')) {
+    return null
+  }
+  try {
+    return JSON.parse(trimmed) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
 export async function pullFromCloud(code: string): Promise<PullOk | Err> {
   const res = await fetch(`/api/sync?code=${encodeURIComponent(normalizeSyncCode(code))}`)
-  const contentType = res.headers.get('content-type') || ''
-  if (!contentType.includes('application/json')) {
+  const body = await readJsonBody(res)
+  if (!body) {
     return {
       ok: false,
       error: '云同步接口未部署。请先 git push，并在 Cloudflare 绑定 MEMORY_KV 后重新部署',
     }
   }
-  const body = (await res.json().catch(() => ({}))) as {
-    error?: string
-    updatedAt?: string
-    data?: AppData
-  }
-  if (!res.ok) return { ok: false, error: body.error || `拉取失败（${res.status}）` }
-  if (!body.data) return { ok: false, error: '云端返回数据为空' }
-  return { ok: true, updatedAt: body.updatedAt || '', data: body.data }
+  if (!res.ok) return { ok: false, error: String(body.error || `拉取失败（${res.status}）`) }
+  const data = body.data as AppData | undefined
+  if (!data) return { ok: false, error: '云端返回数据为空' }
+  return { ok: true, updatedAt: String(body.updatedAt || ''), data }
 }
 
 export async function pushToCloud(code: string, data: AppData): Promise<PushOk | Err> {
@@ -62,14 +71,13 @@ export async function pushToCloud(code: string, data: AppData): Promise<PushOk |
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ code: normalizeSyncCode(code), data }),
   })
-  const contentType = res.headers.get('content-type') || ''
-  if (!contentType.includes('application/json')) {
+  const body = await readJsonBody(res)
+  if (!body) {
     return {
       ok: false,
       error: '云同步接口未部署。请先 git push，并在 Cloudflare 绑定 MEMORY_KV 后重新部署',
     }
   }
-  const body = (await res.json().catch(() => ({}))) as { error?: string; updatedAt?: string }
-  if (!res.ok) return { ok: false, error: body.error || `上传失败（${res.status}）` }
-  return { ok: true, updatedAt: body.updatedAt || '' }
+  if (!res.ok) return { ok: false, error: String(body.error || `上传失败（${res.status}）`) }
+  return { ok: true, updatedAt: String(body.updatedAt || '') }
 }
