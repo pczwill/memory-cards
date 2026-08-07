@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { dueCards } from '../lib/stats'
+import { dueCards, shuffle } from '../lib/stats'
 import type { Card, ReviewGrade } from '../types'
 
 const GRADES: { id: ReviewGrade; label: string; hint: string }[] = [
@@ -16,7 +16,7 @@ export function Review({
   cards: Card[]
   onGrade: (id: string, grade: ReviewGrade) => void
 }) {
-  const [queue] = useState(() => dueCards(cards))
+  const [queue] = useState(() => shuffle(dueCards(cards)))
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)

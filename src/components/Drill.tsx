@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { answersMatch } from '../lib/stats'
+import { answersMatch, shuffle } from '../lib/stats'
 import { isPercentDrillCard } from '../lib/seed'
 import type { Card } from '../types'
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
 
 function buildPool(cards: Card[]): Card[] {
   const drills = cards.filter(isPercentDrillCard)

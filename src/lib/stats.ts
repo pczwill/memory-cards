@@ -1,6 +1,15 @@
 import { effectiveDue, isDue } from './sm2'
 import type { AppData, Card, ReviewLog } from '../types'
 
+export function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 export function dueCards(cards: Card[]): Card[] {
   return cards
     .filter((c) => isDue(c))
